@@ -76,7 +76,11 @@ public class AnnotationReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> 
 
     @Override
     public void visit(SingleMemberAnnotationExpr expr, AtomicBoolean changed) {
-        System.out.println("注解");
-        System.out.println(expr);
+        String exprName = expr.getName().toString();
+        String newName = singleMemberAnnoNameMap.get(exprName);
+        if (newName != null) {
+            expr.setName(newName);
+            changed.set(true);
+        }
     }
 }
