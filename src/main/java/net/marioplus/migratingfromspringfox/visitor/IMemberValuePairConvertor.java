@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public interface IMemberValuePairConvertor {
 
     @Schema(accessMode = io.swagger.v3.oas.annotations.media.Schema.AccessMode.READ_ONLY)
-    boolean match(String name);
+    boolean match(MemberValuePair name);
 
     void convert(MemberValuePair pair);
 }

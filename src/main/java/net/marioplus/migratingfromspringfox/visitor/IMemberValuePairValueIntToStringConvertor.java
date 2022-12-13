@@ -7,9 +7,9 @@ import com.github.javaparser.ast.expr.StringLiteralExpr;
 
 import java.util.function.Function;
 
-public abstract class IMemberValuePairValueStringToIntConvertor implements IMemberValuePairConvertor {
+public abstract class IMemberValuePairValueIntToStringConvertor implements IMemberValuePairConvertor {
 
-    public static final Function<String, IMemberValuePairValueStringToIntConvertor> DEFAULT = name -> new IMemberValuePairValueStringToIntConvertor() {
+    public static final Function<String, IMemberValuePairValueIntToStringConvertor> DEFAULT = name -> new IMemberValuePairValueIntToStringConvertor() {
         @Override
         public boolean match(MemberValuePair pair) {
             return pair.getNameAsString().equals(name);
@@ -19,9 +19,9 @@ public abstract class IMemberValuePairValueStringToIntConvertor implements IMemb
     @Override
     public void convert(MemberValuePair pair) {
         Expression expr = pair.getValue();
-        if (expr instanceof StringLiteralExpr) {
-            StringLiteralExpr slExpr = (StringLiteralExpr) expr;
-            IntegerLiteralExpr newExpr = new IntegerLiteralExpr(slExpr.getValue().replaceAll("^\"(.+)\"$", "$1"));
+        if (expr instanceof IntegerLiteralExpr) {
+            IntegerLiteralExpr intExpr = (IntegerLiteralExpr) expr;
+            StringLiteralExpr newExpr = new StringLiteralExpr(String.valueOf(intExpr.getValue()));
             pair.setValue(newExpr);
         }
     }

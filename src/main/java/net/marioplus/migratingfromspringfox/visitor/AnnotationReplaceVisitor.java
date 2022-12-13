@@ -1,16 +1,11 @@
 package net.marioplus.migratingfromspringfox.visitor;
 
 import com.github.javaparser.ast.Node;
-import com.github.javaparser.ast.expr.MemberValuePair;
-import com.github.javaparser.ast.expr.NormalAnnotationExpr;
-import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
+import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import io.swagger.v3.oas.annotations.Hidden;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class AnnotationReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> {
@@ -21,11 +16,35 @@ public class AnnotationReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> 
 
     static {
         normalAnnoNameMap.put("Api", "Tag");
-        normalAnnoNameMap.put("ApiIgnore", "io.swagger.v3.oas.annotations.Hidden");
+        normalAnnoNameMap.put("ApiIgnore", "Hidden");
         normalAnnoNameMap.put("ApiImplicitParam", "Parameter");
         normalAnnoNameMap.put("ApiModel", "Schema");
-        normalAnnoNameMap.put("ApiModelProperty", "Schema");
         normalAnnoNameMap.put("ApiParam", "Parameter");
+
+        normalAnnoNameMap.put("ApiModelProperty", "Schema");
+        memberValuePairConvertorMap.put("ApiModelProperty", Collections.singletonList(
+                new IMemberValuePairConvertor() {
+
+                    @Override
+                    public boolean match(MemberValuePair pair) {
+                        if (!pair.getNameAsString().equals("hidden")) {
+                            return false;
+                        }
+                        return ((BooleanLiteralExpr) pair.getValue()).getValue();
+                    }
+
+                    @Override
+                    public void convert(MemberValuePair pair) {
+                        String pack = "io.swagger.v3.oas.annotations.media.Schema.AccessMode.READ_ONLY";
+                        String[] split = pack.split("\\.");
+                        FieldAccessExpr expr = new FieldAccessExpr(new NameExpr(split[0]), split[1]);
+                        for (int i = 2; i < split.length; i++) {
+                            expr = new FieldAccessExpr(expr, split[i]);
+                        }
+                        pair.setValue(expr);
+                    }
+                }
+        ));
 
         normalAnnoNameMap.put("ApiOperation", "Operation");
         memberValuePairConvertorMap.put("ApiOperation", Arrays.asList(
@@ -35,7 +54,7 @@ public class AnnotationReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> 
 
         memberValuePairConvertorMap.put("ApiResponse", Arrays.asList(
                 IMemberValuePairNameConvertor.DEFAULT.apply("code", "responseCode"),
-                IMemberValuePairValueStringToIntConvertor.DEFAULT.apply("code"),
+                IMemberValuePairValueIntToStringConvertor.DEFAULT.apply("code"),
                 IMemberValuePairNameConvertor.DEFAULT.apply("message", "description")
         ));
     }
@@ -64,7 +83,7 @@ public class AnnotationReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> 
             if (node instanceof MemberValuePair) {
                 MemberValuePair memberValuePair = (MemberValuePair) node;
                 for (IMemberValuePairConvertor valuePairConvertor : valuePairConvertors) {
-                    if (valuePairConvertor.match(memberValuePair.getNameAsString())) {
+                    if (valuePairConvertor.match(memberValuePair)) {
                         valuePairConvertor.convert(memberValuePair);
                         changed.set(true);
                     }

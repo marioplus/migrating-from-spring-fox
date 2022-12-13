@@ -13,7 +13,9 @@ public class ImportReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> {
 
     static {
         // api
+        importMap.put("io.swagger.annotations.*", "io.swagger.v3.oas.annotations.*");
         importMap.put("io.swagger.annotations.Api", "io.swagger.v3.oas.annotations.Tag");
+        importMap.put("io.swagger.annotations.ApiIgnore", "io.swagger.v3.oas.annotations.Hidden");
         importMap.put("io.swagger.annotations.ApiImplicitParam", "io.swagger.v3.oas.annotations.Parameter");
         importMap.put("io.swagger.annotations.ApiImplicitParams", "io.swagger.v3.oas.annotations.Parameters");
         importMap.put("io.swagger.annotations.ApiOperation", "io.swagger.v3.oas.annotations.Operation");
