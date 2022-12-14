@@ -1,36 +1,45 @@
 package net.marioplus.migratingfromspringfox.visitor;
 
 import com.github.javaparser.ast.ImportDeclaration;
+import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import net.marioplus.migratingfromspringfox.convertor.base.IFilterConvertor;
+import net.marioplus.migratingfromspringfox.convertor.base.NodeNameFilterConvertor;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ImportReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> {
 
     private static final Map<String, String> importMap = new HashMap<>();
+    private static final List<IFilterConvertor<ImportDeclaration>> CONVERTORS = new ArrayList<>();
 
     static {
+
+        CONVERTORS.add(new NodeNameFilterConvertor<>("io.swagger.annotations.*", "io.swagger.v3.oas.annotations.*"));
         // api
-        importMap.put("io.swagger.annotations.*", "io.swagger.v3.oas.annotations.*");
-        importMap.put("io.swagger.annotations.Api", "io.swagger.v3.oas.annotations.Tag");
-        importMap.put("io.swagger.annotations.ApiIgnore", "io.swagger.v3.oas.annotations.Hidden");
-        importMap.put("io.swagger.annotations.ApiImplicitParam", "io.swagger.v3.oas.annotations.Parameter");
-        importMap.put("io.swagger.annotations.ApiImplicitParams", "io.swagger.v3.oas.annotations.Parameters");
-        importMap.put("io.swagger.annotations.ApiOperation", "io.swagger.v3.oas.annotations.Operation");
+        CONVERTORS.add(new NodeNameFilterConvertor<>("io.swagger.annotations.*", "io.swagger.v3.oas.annotations.*"));
+        CONVERTORS.add(new NodeNameFilterConvertor<>("io.swagger.annotations.Api", "io.swagger.v3.oas.annotations.Tag"));
+        CONVERTORS.add(new NodeNameFilterConvertor<>("io.swagger.annotations.ApiIgnore", "io.swagger.v3.oas.annotations.Hidden"));
+        CONVERTORS.add(new NodeNameFilterConvertor<>("io.swagger.annotations.ApiImplicitParam", "io.swagger.v3.oas.annotations.Parameter"));
+        CONVERTORS.add(new NodeNameFilterConvertor<>("io.swagger.annotations.ApiImplicitParams", "io.swagger.v3.oas.annotations.Parameters"));
+        CONVERTORS.add(new NodeNameFilterConvertor<>("io.swagger.annotations.ApiOperation", "io.swagger.v3.oas.annotations.Operation"));
 
         // model
-        importMap.put("io.swagger.annotations.ApiModel", "io.swagger.v3.oas.annotations.Schema");
-        importMap.put("io.swagger.annotations.ApiModelProperty", "io.swagger.v3.oas.annotations.Schema");
+        CONVERTORS.add(new NodeNameFilterConvertor<>("io.swagger.annotations.ApiModel", "io.swagger.v3.oas.annotations.Schema"));
+        CONVERTORS.add(new NodeNameFilterConvertor<>("io.swagger.annotations.ApiModelProperty", "io.swagger.v3.oas.annotations.Schema"));
     }
 
     @Override
-    public void visit(ImportDeclaration n, AtomicBoolean changed) {
-        String newName = importMap.get(n.getName().toString());
-        if (newName != null) {
-            n.setName(newName);
-            changed.set(true);
+    public void visit(ImportDeclaration importDeclaration, AtomicBoolean changed) {
+        for (IFilterConvertor<ImportDeclaration> convertor : CONVERTORS) {
+            if (convertor.filter(importDeclaration)) {
+                changed.set(true);
+                convertor.convert(importDeclaration);
+            }
         }
     }
 }

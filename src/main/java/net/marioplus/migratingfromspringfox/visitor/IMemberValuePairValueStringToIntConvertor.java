@@ -11,7 +11,7 @@ public abstract class IMemberValuePairValueStringToIntConvertor implements IMemb
 
     public static final Function<String, IMemberValuePairValueStringToIntConvertor> DEFAULT = name -> new IMemberValuePairValueStringToIntConvertor() {
         @Override
-        public boolean match(MemberValuePair pair) {
+        public boolean filter(MemberValuePair pair) {
             return pair.getNameAsString().equals(name);
         }
     };

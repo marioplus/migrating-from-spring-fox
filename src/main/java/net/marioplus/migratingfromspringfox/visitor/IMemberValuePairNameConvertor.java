@@ -9,7 +9,7 @@ public abstract class IMemberValuePairNameConvertor implements IMemberValuePairC
     public static final BiFunction<String, String, IMemberValuePairNameConvertor> DEFAULT = (name, newName) -> new IMemberValuePairNameConvertor() {
 
         @Override
-        public boolean match(MemberValuePair pair) {
+        public boolean filter(MemberValuePair pair) {
             return pair.getNameAsString().equals(name);
         }
 
