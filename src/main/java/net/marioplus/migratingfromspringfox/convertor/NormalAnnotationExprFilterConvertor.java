@@ -3,7 +3,7 @@ package net.marioplus.migratingfromspringfox.convertor;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MemberValuePair;
-import com.github.javaparser.ast.nodeTypes.NodeWithName;
+import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import net.marioplus.migratingfromspringfox.convertor.base.IFilterConvertor;
 import net.marioplus.migratingfromspringfox.convertor.base.NodeNameConvertor;
 import net.marioplus.migratingfromspringfox.convertor.base.NodeNameFilter;
@@ -11,35 +11,35 @@ import net.marioplus.migratingfromspringfox.convertor.base.NodeNameFilter;
 import java.util.Collections;
 import java.util.List;
 
-public class AnnotationExprFilterConvertor implements IFilterConvertor<AnnotationExpr> {
+public class NormalAnnotationExprFilterConvertor implements IFilterConvertor<NormalAnnotationExpr> {
 
-    private final NodeNameFilter<NodeWithName<AnnotationExpr>, AnnotationExpr> filter;
+    private final NodeNameFilter<NormalAnnotationExpr, AnnotationExpr> filter;
 
-    private final NodeNameConvertor<NodeWithName<AnnotationExpr>, AnnotationExpr> nameConvertor;
+    private final NodeNameConvertor<NormalAnnotationExpr, AnnotationExpr> nameConvertor;
 
     private final List<IFilterConvertor<MemberValuePair>> childNodeConvertors;
 
-    public AnnotationExprFilterConvertor(String name, String nameName, List<IFilterConvertor<MemberValuePair>> childNodeConvertors) {
+    public NormalAnnotationExprFilterConvertor(String name, String nameName, List<IFilterConvertor<MemberValuePair>> childNodeConvertors) {
         this.filter = new NodeNameFilter<>(name);
         this.nameConvertor = new NodeNameConvertor<>(nameName);
         this.childNodeConvertors = childNodeConvertors;
     }
 
-    public AnnotationExprFilterConvertor(String name, List<IFilterConvertor<MemberValuePair>> childNodeConvertors) {
+    public NormalAnnotationExprFilterConvertor(String name, List<IFilterConvertor<MemberValuePair>> childNodeConvertors) {
         this(name, null, childNodeConvertors);
     }
 
-    public AnnotationExprFilterConvertor(String name, String nameName) {
+    public NormalAnnotationExprFilterConvertor(String name, String nameName) {
         this(name, nameName, Collections.emptyList());
     }
 
     @Override
-    public boolean filter(AnnotationExpr expr) {
+    public boolean filter(NormalAnnotationExpr expr) {
         return filter.filter(expr);
     }
 
     @Override
-    public void convert(AnnotationExpr expr) {
+    public void convert(NormalAnnotationExpr expr) {
         if (!filter(expr)) {
             return;
         }

@@ -11,14 +11,16 @@ import net.marioplus.migratingfromspringfox.visitor.ImportReplaceVisitor;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class App {
     public static void main(String[] args) throws FileNotFoundException {
-        List<String> paths = Arrays.asList(
-                "G:/Code/Demo/migrating-from-spring-fox/src/main/java/net/marioplus/migratingfromspringfox"
+        List<String> paths = Collections.singletonList(
+                String.format("%s/src/main/java/", Paths.get(".").normalize().toAbsolutePath())
         );
         List<File> files = FileUtils.loadFile(paths, FileUtils.FILE_FILTER_JAVA);
         for (File file : files) {

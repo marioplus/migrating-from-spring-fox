@@ -3,26 +3,29 @@ package net.marioplus.migratingfromspringfox.visitor;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import io.swagger.v3.oas.annotations.Hidden;
-import net.marioplus.migratingfromspringfox.convertor.AnnotationExprFilterConvertor;
+import net.marioplus.migratingfromspringfox.convertor.NormalAnnotationExprFilterConvertor;
+import net.marioplus.migratingfromspringfox.convertor.SingleMemberAnnotationExprFilterConvertor;
 import net.marioplus.migratingfromspringfox.convertor.base.IFilterConvertor;
 import net.marioplus.migratingfromspringfox.convertor.base.NodeSimpleNameFilterConvertor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class AnnotationReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> {
 
-    private static final Map<String, String> singleMemberAnnoNameMap = new HashMap<>();
+    private static final List<NormalAnnotationExprFilterConvertor> NORMAL_ANNOTATION_EXPR_FILTER_CONVERTORS = new ArrayList<>();
 
-    private static final List<IFilterConvertor<AnnotationExpr>> CONVERTORS = new ArrayList<>();
+    private static final List<SingleMemberAnnotationExprFilterConvertor> SINGLE_MEMBER_ANNOTATION_EXPR_FILTER_CONVERTORS = new ArrayList<>();
 
     static {
-        CONVERTORS.add(new AnnotationExprFilterConvertor("Api", "Tag"));
-        CONVERTORS.add(new AnnotationExprFilterConvertor("ApiIgnore", "Hidden"));
-        CONVERTORS.add(new AnnotationExprFilterConvertor("ApiImplicitParam", "Parameter"));
-        CONVERTORS.add(new AnnotationExprFilterConvertor("ApiModel", "Schema"));
-        CONVERTORS.add(new AnnotationExprFilterConvertor("ApiParam", "Parameter"));
-        CONVERTORS.add(new AnnotationExprFilterConvertor("ApiModelProperty", "Schema", Collections.singletonList(
+        NORMAL_ANNOTATION_EXPR_FILTER_CONVERTORS.add(new NormalAnnotationExprFilterConvertor("Api", "Tag"));
+        NORMAL_ANNOTATION_EXPR_FILTER_CONVERTORS.add(new NormalAnnotationExprFilterConvertor("ApiIgnore", "Hidden"));
+        NORMAL_ANNOTATION_EXPR_FILTER_CONVERTORS.add(new NormalAnnotationExprFilterConvertor("ApiModel", "Schema"));
+        NORMAL_ANNOTATION_EXPR_FILTER_CONVERTORS.add(new NormalAnnotationExprFilterConvertor("ApiParam", "Parameter"));
+        NORMAL_ANNOTATION_EXPR_FILTER_CONVERTORS.add(new NormalAnnotationExprFilterConvertor("ApiModelProperty", "Schema", Collections.singletonList(
                 new IFilterConvertor<MemberValuePair>() {
                     @Override
                     public boolean filter(MemberValuePair pair) {
@@ -45,12 +48,12 @@ public class AnnotationReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> 
                 }
         )));
 
-        CONVERTORS.add(new AnnotationExprFilterConvertor("ApiOperation", "Operation", Arrays.asList(
+        NORMAL_ANNOTATION_EXPR_FILTER_CONVERTORS.add(new NormalAnnotationExprFilterConvertor("ApiOperation", "Operation", Arrays.asList(
                 new NodeSimpleNameFilterConvertor<>("value", "summary"),
                 new NodeSimpleNameFilterConvertor<>("notes", "description")
         )));
 
-        CONVERTORS.add(new AnnotationExprFilterConvertor("ApiOperation", Arrays.asList(
+        NORMAL_ANNOTATION_EXPR_FILTER_CONVERTORS.add(new NormalAnnotationExprFilterConvertor("ApiOperation", Arrays.asList(
                 new NodeSimpleNameFilterConvertor<>("code", "responseCode"),
                 new IFilterConvertor<MemberValuePair>() {
 
@@ -74,28 +77,30 @@ public class AnnotationReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> 
     }
 
     static {
-        singleMemberAnnoNameMap.put("ApiImplicitParams", "Parameters");
+        SINGLE_MEMBER_ANNOTATION_EXPR_FILTER_CONVERTORS.add(new SingleMemberAnnotationExprFilterConvertor("ApiImplicitParams", "Parameters", Collections.singletonList(
+                new NormalAnnotationExprFilterConvertor("ApiImplicitParam", "Parameter")
+        )));
     }
 
     @Override
 
     @Hidden
     public void visit(NormalAnnotationExpr expr, AtomicBoolean changed) {
-        for (IFilterConvertor<AnnotationExpr> convertor : CONVERTORS) {
-            if (convertor.filter(expr)) {
+        for (NormalAnnotationExprFilterConvertor filterConvertor : NORMAL_ANNOTATION_EXPR_FILTER_CONVERTORS) {
+            if (filterConvertor.filter(expr)) {
                 changed.set(true);
-                convertor.convert(expr);
+                filterConvertor.convert(expr);
             }
         }
     }
 
     @Override
     public void visit(SingleMemberAnnotationExpr expr, AtomicBoolean changed) {
-        String exprName = expr.getName().toString();
-        String newName = singleMemberAnnoNameMap.get(exprName);
-        if (newName != null) {
-            expr.setName(newName);
-            changed.set(true);
+        for (SingleMemberAnnotationExprFilterConvertor filterConvertor : SINGLE_MEMBER_ANNOTATION_EXPR_FILTER_CONVERTORS) {
+            if (filterConvertor.filter(expr)) {
+                changed.set(true);
+                filterConvertor.convert(expr);
+            }
         }
     }
 }
