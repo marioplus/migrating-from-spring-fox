@@ -16,32 +16,38 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 public class App {
     public static void main(String[] args) throws FileNotFoundException {
         List<String> paths = Collections.singletonList(
                 String.format("%s/src/main/java/", Paths.get(".").normalize().toAbsolutePath())
         );
-        List<File> files = FileUtils.loadFile(paths, FileUtils.FILE_FILTER_JAVA);
-        for (File file : files) {
-            System.out.printf("====%s====%n", file.getName());
-            migrate(file);
-        }
-    }
-
-    private static void migrate(File file) throws FileNotFoundException {
-        CompilationUnit cu = StaticJavaParser.parse(file);
         List<VoidVisitorAdapter<AtomicBoolean>> visitorAdapters = Arrays.asList(
                 new AnnotationReplaceVisitor(),
                 new ImportReplaceVisitor()
         );
+        List<File> files = FileUtils.loadFile(paths, FileUtils.FILE_FILTER_JAVA);
+
+        for (File file : files) {
+            System.out.printf("====%s====%n", file.getName());
+            migrate(file, visitorAdapters, CompilationUnitUtils::prettyPrint);
+            System.out.println();
+        }
+    }
+
+    private static void migrate(File file,
+                                List<VoidVisitorAdapter<AtomicBoolean>> visitorAdapters,
+                                Consumer<CompilationUnit> changedConsumer) throws FileNotFoundException {
+        CompilationUnit cu = StaticJavaParser.parse(file);
+
         AtomicBoolean changed = new AtomicBoolean(false);
         for (VoidVisitorAdapter<AtomicBoolean> visitorAdapter : visitorAdapters) {
             visitorAdapter.visit(cu, changed);
         }
 
         if (changed.get()) {
-            System.out.println(CompilationUnitUtils.prettyPrint(cu));
+            changedConsumer.accept(cu);
         }
     }
 }
