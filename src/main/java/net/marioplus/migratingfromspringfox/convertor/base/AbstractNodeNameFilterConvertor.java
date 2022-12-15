@@ -13,6 +13,6 @@ public abstract class AbstractNodeNameFilterConvertor<T> implements IFilterConve
 
     @Override
     public void convert(T t) {
-        filter.filter(t);
+        convertor.convert(t);
     }
 }

@@ -1,11 +1,13 @@
 package net.marioplus.migratingfromspringfox.visitor;
 
 import com.github.javaparser.ast.expr.*;
+import com.github.javaparser.ast.nodeTypes.NodeWithName;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import io.swagger.v3.oas.annotations.Hidden;
 import net.marioplus.migratingfromspringfox.convertor.NormalAnnotationExprFilterConvertor;
 import net.marioplus.migratingfromspringfox.convertor.SingleMemberAnnotationExprFilterConvertor;
 import net.marioplus.migratingfromspringfox.convertor.base.IFilterConvertor;
+import net.marioplus.migratingfromspringfox.convertor.base.NodeNameFilterConvertor;
 import net.marioplus.migratingfromspringfox.convertor.base.NodeSimpleNameFilterConvertor;
 
 import java.util.ArrayList;
@@ -17,8 +19,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class AnnotationReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> {
 
     private static final List<NormalAnnotationExprFilterConvertor> NORMAL_ANNOTATION_EXPR_FILTER_CONVERTORS = new ArrayList<>();
-
-    private static final List<SingleMemberAnnotationExprFilterConvertor> SINGLE_MEMBER_ANNOTATION_EXPR_FILTER_CONVERTORS = new ArrayList<>();
 
     static {
         NORMAL_ANNOTATION_EXPR_FILTER_CONVERTORS.add(new NormalAnnotationExprFilterConvertor("Api", "Tag"));
@@ -37,12 +37,7 @@ public class AnnotationReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> 
 
                     @Override
                     public void convert(MemberValuePair pair) {
-                        String pack = "io.swagger.v3.oas.annotations.media.Schema.AccessMode.READ_ONLY";
-                        String[] split = pack.split("\\.");
-                        FieldAccessExpr expr = new FieldAccessExpr(new NameExpr(split[0]), split[1]);
-                        for (int i = 2; i < split.length; i++) {
-                            expr = new FieldAccessExpr(expr, split[i]);
-                        }
+                        FieldAccessExpr expr = new FieldAccessExpr(new NameExpr("io.swagger.v3.oas.annotations.media.Schema.AccessMode"), "READ_ONLY");
                         pair.setValue(expr);
                     }
                 }
@@ -65,21 +60,29 @@ public class AnnotationReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> 
                     @Override
                     public void convert(MemberValuePair pair) {
                         Expression expr = pair.getValue();
-                        if (expr instanceof IntegerLiteralExpr) {
-                            IntegerLiteralExpr intExpr = (IntegerLiteralExpr) expr;
-                            StringLiteralExpr newExpr = new StringLiteralExpr(String.valueOf(intExpr.getValue()));
-                            pair.setValue(newExpr);
-                        }
+                        IntegerLiteralExpr intExpr = (IntegerLiteralExpr) expr;
+                        StringLiteralExpr newExpr = new StringLiteralExpr(String.valueOf(intExpr.getValue()));
+                        pair.setValue(newExpr);
                     }
                 },
                 new NodeSimpleNameFilterConvertor<>("message", "description")
         )));
     }
 
+    private static final List<SingleMemberAnnotationExprFilterConvertor> SINGLE_MEMBER_ANNOTATION_EXPR_FILTER_CONVERTORS = new ArrayList<>();
+
     static {
         SINGLE_MEMBER_ANNOTATION_EXPR_FILTER_CONVERTORS.add(new SingleMemberAnnotationExprFilterConvertor("ApiImplicitParams", "Parameters", Collections.singletonList(
                 new NormalAnnotationExprFilterConvertor("ApiImplicitParam", "Parameter")
         )));
+    }
+
+    private static final List<NodeNameFilterConvertor<NodeWithName<AnnotationExpr>, AnnotationExpr>> MARKER_ANNOTATION_EXPR_FILTER_CONVERTOR = new ArrayList<>();
+
+    static {
+        MARKER_ANNOTATION_EXPR_FILTER_CONVERTOR.add(
+                new NodeNameFilterConvertor<>("ApiIgnore", "io.swagger.v3.oas.annotations.Hidden")
+        );
     }
 
     @Override
@@ -97,6 +100,16 @@ public class AnnotationReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> 
     @Override
     public void visit(SingleMemberAnnotationExpr expr, AtomicBoolean changed) {
         for (SingleMemberAnnotationExprFilterConvertor filterConvertor : SINGLE_MEMBER_ANNOTATION_EXPR_FILTER_CONVERTORS) {
+            if (filterConvertor.filter(expr)) {
+                changed.set(true);
+                filterConvertor.convert(expr);
+            }
+        }
+    }
+
+    @Override
+    public void visit(MarkerAnnotationExpr expr, AtomicBoolean changed) {
+        for (NodeNameFilterConvertor<NodeWithName<AnnotationExpr>, AnnotationExpr> filterConvertor : MARKER_ANNOTATION_EXPR_FILTER_CONVERTOR) {
             if (filterConvertor.filter(expr)) {
                 changed.set(true);
                 filterConvertor.convert(expr);

@@ -4,7 +4,6 @@ package net.marioplus.migratingfromspringfox;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
-import net.marioplus.migratingfromspringfox.util.CompilationUnitUtils;
 import net.marioplus.migratingfromspringfox.util.FileUtils;
 import net.marioplus.migratingfromspringfox.visitor.AnnotationReplaceVisitor;
 import net.marioplus.migratingfromspringfox.visitor.ImportReplaceVisitor;
@@ -24,14 +23,15 @@ public class App {
                 String.format("%s/src/main/java/", Paths.get(".").normalize().toAbsolutePath())
         );
         List<VoidVisitorAdapter<AtomicBoolean>> visitorAdapters = Arrays.asList(
-                new AnnotationReplaceVisitor(),
-                new ImportReplaceVisitor()
+                new ImportReplaceVisitor(),
+                new AnnotationReplaceVisitor()
         );
         List<File> files = FileUtils.loadFile(paths, FileUtils.FILE_FILTER_JAVA);
 
         for (File file : files) {
             System.out.printf("====%s====%n", file.getName());
-            migrate(file, visitorAdapters, CompilationUnitUtils::prettyPrint);
+            // migrate(file, visitorAdapters, CompilationUnitUtils::prettyPrint);
+            migrate(file, visitorAdapters, cu -> refreshFile(file, cu));
             System.out.println();
         }
     }
@@ -49,5 +49,9 @@ public class App {
         if (changed.get()) {
             changedConsumer.accept(cu);
         }
+    }
+
+    private static void refreshFile(File file, CompilationUnit cu) {
+        System.out.println(cu);
     }
 }

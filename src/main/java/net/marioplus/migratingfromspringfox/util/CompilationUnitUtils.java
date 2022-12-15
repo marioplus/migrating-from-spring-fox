@@ -9,7 +9,6 @@ import com.github.javaparser.printer.configuration.PrinterConfiguration;
 public class CompilationUnitUtils {
 
     private static final DefaultPrettyPrinter PRETTY_PRINTER = new DefaultPrettyPrinter();
-    ;
 
     static {
         PrinterConfiguration config = new DefaultPrinterConfiguration()

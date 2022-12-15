@@ -1,6 +1,7 @@
 package net.marioplus.migratingfromspringfox;
 
 import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Hidden;
 import springfox.documentation.annotations.ApiIgnore;
 
 @Api(tags = "用户相关接口")
