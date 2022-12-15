@@ -1,7 +1,6 @@
 package net.marioplus.migratingfromspringfox;
 
 import io.swagger.annotations.*;
-import io.swagger.v3.oas.annotations.Hidden;
 import springfox.documentation.annotations.ApiIgnore;
 
 @Api(tags = "用户相关接口")
@@ -23,7 +22,7 @@ public class UserRest {
             @ApiImplicitParam(name = "name", value = "姓名", required = true, dataTypeClass = String.class),
     })
     @ApiResponse(code = 404, message = "foo")
-    @ApiIgnore
+    @ApiIgnore("")
     public void update(Long id, String name) {
         User user = new User(id, name);
     }

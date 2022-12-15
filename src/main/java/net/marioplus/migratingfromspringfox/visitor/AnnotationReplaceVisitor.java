@@ -3,7 +3,6 @@ package net.marioplus.migratingfromspringfox.visitor;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.nodeTypes.NodeWithName;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
-import io.swagger.v3.oas.annotations.Hidden;
 import net.marioplus.migratingfromspringfox.convertor.NormalAnnotationExprFilterConvertor;
 import net.marioplus.migratingfromspringfox.convertor.SingleMemberAnnotationExprFilterConvertor;
 import net.marioplus.migratingfromspringfox.convertor.base.IFilterConvertor;
@@ -69,10 +68,13 @@ public class AnnotationReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> 
         )));
     }
 
-    private static final List<SingleMemberAnnotationExprFilterConvertor> SINGLE_MEMBER_ANNOTATION_EXPR_FILTER_CONVERTORS = new ArrayList<>();
+    private static final List<SingleMemberAnnotationExprFilterConvertor<?>> SINGLE_MEMBER_ANNOTATION_EXPR_FILTER_CONVERTORS = new ArrayList<>();
 
     static {
-        SINGLE_MEMBER_ANNOTATION_EXPR_FILTER_CONVERTORS.add(new SingleMemberAnnotationExprFilterConvertor("ApiImplicitParams", "Parameters", Collections.singletonList(
+        SINGLE_MEMBER_ANNOTATION_EXPR_FILTER_CONVERTORS.add(new SingleMemberAnnotationExprFilterConvertor<>(NormalAnnotationExpr.class, "ApiImplicitParams", "Parameters", Collections.singletonList(
+                new NormalAnnotationExprFilterConvertor("ApiImplicitParam", "Parameter")
+        )));
+        SINGLE_MEMBER_ANNOTATION_EXPR_FILTER_CONVERTORS.add(new SingleMemberAnnotationExprFilterConvertor<>(NormalAnnotationExpr.class, "ApiIgnore", "Hidden", Collections.singletonList(
                 new NormalAnnotationExprFilterConvertor("ApiImplicitParam", "Parameter")
         )));
     }
@@ -81,14 +83,13 @@ public class AnnotationReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> 
 
     static {
         MARKER_ANNOTATION_EXPR_FILTER_CONVERTOR.add(
-                new NodeNameFilterConvertor<>("ApiIgnore", "io.swagger.v3.oas.annotations.Hidden")
+                new NodeNameFilterConvertor<>("ApiIgnore", "Hidden")
         );
     }
 
     @Override
-
-    @Hidden
     public void visit(NormalAnnotationExpr expr, AtomicBoolean changed) {
+        System.out.printf("NormalAnnotationExpr:\t%s%n", expr.getNameAsString());
         for (NormalAnnotationExprFilterConvertor filterConvertor : NORMAL_ANNOTATION_EXPR_FILTER_CONVERTORS) {
             if (filterConvertor.filter(expr)) {
                 changed.set(true);
@@ -99,7 +100,8 @@ public class AnnotationReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> 
 
     @Override
     public void visit(SingleMemberAnnotationExpr expr, AtomicBoolean changed) {
-        for (SingleMemberAnnotationExprFilterConvertor filterConvertor : SINGLE_MEMBER_ANNOTATION_EXPR_FILTER_CONVERTORS) {
+        System.out.printf("SingleMemberAnnotationExpr:\t%s%n", expr.getNameAsString());
+        for (SingleMemberAnnotationExprFilterConvertor<?> filterConvertor : SINGLE_MEMBER_ANNOTATION_EXPR_FILTER_CONVERTORS) {
             if (filterConvertor.filter(expr)) {
                 changed.set(true);
                 filterConvertor.convert(expr);
@@ -109,6 +111,7 @@ public class AnnotationReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> 
 
     @Override
     public void visit(MarkerAnnotationExpr expr, AtomicBoolean changed) {
+        System.out.printf("MarkerAnnotationExpr:\t%s%n", expr.getNameAsString());
         for (NodeNameFilterConvertor<NodeWithName<AnnotationExpr>, AnnotationExpr> filterConvertor : MARKER_ANNOTATION_EXPR_FILTER_CONVERTOR) {
             if (filterConvertor.filter(expr)) {
                 changed.set(true);

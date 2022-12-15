@@ -1,7 +1,6 @@
 package net.marioplus.migratingfromspringfox.visitor;
 
 import com.github.javaparser.ast.ImportDeclaration;
-import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import net.marioplus.migratingfromspringfox.convertor.base.IFilterConvertor;
 import net.marioplus.migratingfromspringfox.convertor.base.NodeNameFilterConvertor;
@@ -21,9 +20,9 @@ public class ImportReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> {
 
         CONVERTORS.add(new NodeNameFilterConvertor<>("io.swagger.annotations.*", "io.swagger.v3.oas.annotations.*"));
         // api
-        CONVERTORS.add(new NodeNameFilterConvertor<>("io.swagger.annotations.*", "io.swagger.v3.oas.annotations.*"));
         CONVERTORS.add(new NodeNameFilterConvertor<>("io.swagger.annotations.Api", "io.swagger.v3.oas.annotations.Tag"));
         CONVERTORS.add(new NodeNameFilterConvertor<>("io.swagger.annotations.ApiIgnore", "io.swagger.v3.oas.annotations.Hidden"));
+        CONVERTORS.add(new NodeNameFilterConvertor<>("springfox.documentation.annotations.ApiIgnore", "io.swagger.v3.oas.annotations.Hidden"));
         CONVERTORS.add(new NodeNameFilterConvertor<>("io.swagger.annotations.ApiImplicitParam", "io.swagger.v3.oas.annotations.Parameter"));
         CONVERTORS.add(new NodeNameFilterConvertor<>("io.swagger.annotations.ApiImplicitParams", "io.swagger.v3.oas.annotations.Parameters"));
         CONVERTORS.add(new NodeNameFilterConvertor<>("io.swagger.annotations.ApiOperation", "io.swagger.v3.oas.annotations.Operation"));

@@ -2,7 +2,6 @@ package net.marioplus.migratingfromspringfox.convertor;
 
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.expr.AnnotationExpr;
-import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
 import net.marioplus.migratingfromspringfox.convertor.base.IFilterConvertor;
 import net.marioplus.migratingfromspringfox.convertor.base.NodeNameConvertor;
@@ -11,26 +10,28 @@ import net.marioplus.migratingfromspringfox.convertor.base.NodeNameFilter;
 import java.util.Collections;
 import java.util.List;
 
-public class SingleMemberAnnotationExprFilterConvertor implements IFilterConvertor<SingleMemberAnnotationExpr> {
+public class SingleMemberAnnotationExprFilterConvertor<T> implements IFilterConvertor<SingleMemberAnnotationExpr> {
 
+    private final Class<T> memberClass;
     private final NodeNameFilter<SingleMemberAnnotationExpr, AnnotationExpr> filter;
 
     private final NodeNameConvertor<SingleMemberAnnotationExpr, AnnotationExpr> nameConvertor;
 
-    private final List<NormalAnnotationExprFilterConvertor> childNodeConvertors;
+    private final List<IFilterConvertor<T>> childNodeConvertors;
 
-    public SingleMemberAnnotationExprFilterConvertor(String name, String nameName, List<NormalAnnotationExprFilterConvertor> childNodeConvertors) {
+    public SingleMemberAnnotationExprFilterConvertor(Class<T> memberClass, String name, String nameName, List<IFilterConvertor<T>> childNodeConvertors) {
+        this.memberClass = memberClass;
         this.filter = new NodeNameFilter<>(name);
         this.nameConvertor = new NodeNameConvertor<>(nameName);
         this.childNodeConvertors = childNodeConvertors;
     }
 
-    public SingleMemberAnnotationExprFilterConvertor(String name, List<NormalAnnotationExprFilterConvertor> childNodeConvertors) {
-        this(name, null, childNodeConvertors);
+    public SingleMemberAnnotationExprFilterConvertor(Class<T> memberClass, String name, List<IFilterConvertor<T>> childNodeConvertors) {
+        this(memberClass, name, null, childNodeConvertors);
     }
 
     public SingleMemberAnnotationExprFilterConvertor(String name, String nameName) {
-        this(name, nameName, Collections.emptyList());
+        this(null, name, nameName, Collections.emptyList());
     }
 
     @Override
@@ -38,6 +39,7 @@ public class SingleMemberAnnotationExprFilterConvertor implements IFilterConvert
         return filter.filter(expr);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void convert(SingleMemberAnnotationExpr expr) {
         if (!filter(expr)) {
@@ -51,13 +53,12 @@ public class SingleMemberAnnotationExprFilterConvertor implements IFilterConvert
             return;
         }
         for (Node childNode : childNodes) {
-            if (!(childNode instanceof NormalAnnotationExpr)) {
+            if (!(childNode.getClass().isAssignableFrom(memberClass))) {
                 continue;
             }
-            NormalAnnotationExpr childExpr = (NormalAnnotationExpr) childNode;
-            for (NormalAnnotationExprFilterConvertor childNodeConvertor : childNodeConvertors) {
-                if (childNodeConvertor.filter(childExpr)) {
-                    childNodeConvertor.convert(childExpr);
+            for (IFilterConvertor<T> childNodeConvertor : childNodeConvertors) {
+                if (childNodeConvertor.filter((T) childNode)) {
+                    childNodeConvertor.convert((T) childNode);
                 }
             }
         }
