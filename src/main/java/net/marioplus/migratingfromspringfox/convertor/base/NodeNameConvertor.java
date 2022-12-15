@@ -13,7 +13,9 @@ public class NodeNameConvertor<T extends NodeWithName<S>, S extends Node> implem
 
     @Override
     public void convert(T t) {
-        t.setName(getName());
+        if (getName() != null) {
+            t.setName(getName());
+        }
     }
 
     @Override

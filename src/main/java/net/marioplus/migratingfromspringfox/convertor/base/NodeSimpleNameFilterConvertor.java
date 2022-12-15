@@ -9,4 +9,9 @@ public class NodeSimpleNameFilterConvertor<T extends NodeWithSimpleName<S>, S ex
         filter = new NodeSimpleNameFilter<>(name);
         convertor = new NodeSimpleNameConvertor<>(newName);
     }
+
+    public NodeSimpleNameFilterConvertor(String name, IConvertor<T> convertor) {
+        filter = new NodeSimpleNameFilter<>(name);
+        super.convertor = convertor;
+    }
 }

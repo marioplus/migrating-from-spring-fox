@@ -11,18 +11,18 @@ public class UserRest {
             @ApiImplicitParam(name = "id", value = "编号", required = true, dataTypeClass = Long.class),
             @ApiImplicitParam(name = "name", value = "姓名", required = true, dataTypeClass = String.class),
     })
+    @ApiIgnore("")
     public Long add(Long id, String name) {
         User user = new User(id, name);
         return user.getId();
     }
 
     @ApiOperation(value = "update", notes = "更新用户")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "id", value = "编号", required = true, dataTypeClass = Long.class),
-            @ApiImplicitParam(name = "name", value = "姓名", required = true, dataTypeClass = String.class),
-    })
+    @ApiImplicitParams(
+            @ApiImplicitParam(name = "id", value = "编号", required = true, dataTypeClass = Long.class)
+    )
     @ApiResponse(code = 404, message = "foo")
-    @ApiIgnore("")
+    @ApiIgnore(value = "")
     public void update(Long id, String name) {
         User user = new User(id, name);
     }
