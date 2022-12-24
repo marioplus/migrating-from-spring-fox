@@ -18,7 +18,8 @@ public class ImportReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> {
 
     static {
 
-        CONVERTORS.add(new NodeNameFilterConvertor<>("io.swagger.annotations.*", "io.swagger.v3.oas.annotations.*"));
+        // (带 * 的去掉*)
+        CONVERTORS.add(new NodeNameFilterConvertor<>("io.swagger.annotations", "io.swagger.v3.oas.annotations"));
         // api
         CONVERTORS.add(new NodeNameFilterConvertor<>("io.swagger.annotations.Api", "io.swagger.v3.oas.annotations.Tag"));
         CONVERTORS.add(new NodeNameFilterConvertor<>("io.swagger.annotations.ApiIgnore", "io.swagger.v3.oas.annotations.Hidden"));
