@@ -29,8 +29,8 @@ public class ImportReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> {
         CONVERTORS.add(new NodeNameFilterConvertor<>("io.swagger.annotations.ApiOperation", "io.swagger.v3.oas.annotations.Operation"));
 
         // model
-        CONVERTORS.add(new NodeNameFilterConvertor<>("io.swagger.annotations.ApiModel", "io.swagger.v3.oas.annotations.Schema"));
-        CONVERTORS.add(new NodeNameFilterConvertor<>("io.swagger.annotations.ApiModelProperty", "io.swagger.v3.oas.annotations.Schema"));
+        CONVERTORS.add(new NodeNameFilterConvertor<>("io.swagger.annotations.ApiModel", "io.swagger.v3.oas.annotations.media.Schema"));
+        CONVERTORS.add(new NodeNameFilterConvertor<>("io.swagger.annotations.ApiModelProperty", "io.swagger.v3.oas.annotations.media.Schema"));
     }
 
     @Override
