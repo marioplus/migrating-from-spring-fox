@@ -10,7 +10,6 @@ import net.marioplus.migratingfromspringfox.visitor.ImportReplaceVisitor;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -23,12 +22,12 @@ import java.util.function.Consumer;
 
 public class App {
     public static void main(String[] args) throws FileNotFoundException {
-        List<String> paths = Collections.singletonList(String.format("%s/src/main/java/", Paths.get(".").normalize().toAbsolutePath()));
+        List<String> paths = Collections.singletonList(String.format("%s/spring-fox-demo/src/main/java/", Paths.get(".").normalize().toAbsolutePath()));
         List<VoidVisitorAdapter<AtomicBoolean>> visitorAdapters = Arrays.asList(new ImportReplaceVisitor(), new AnnotationReplaceVisitor());
         List<File> files = FileUtils.loadFile(paths, FileUtils.FILE_FILTER_JAVA);
 
         for (File file : files) {
-            System.out.printf("====%s====%n", file.getName());
+            System.out.printf("转换文件: %sn", file.getName());
             // migrate(file, visitorAdapters, cu -> System.out.println(CompilationUnitUtils.prettyPrint(cu)));
             migrate(file, visitorAdapters, cu -> refreshFile(file, cu));
             System.out.println();
@@ -49,7 +48,8 @@ public class App {
     }
 
     @SneakyThrows
-    private static void refreshFile(File file, CompilationUnit cu){
+    private static void refreshFile(File file, CompilationUnit cu) {
+        System.out.printf("文件被转换：%s%n", file.getName());
         Files.write(file.toPath(), cu.toString().getBytes(StandardCharsets.UTF_8), StandardOpenOption.TRUNCATE_EXISTING);
     }
 }
