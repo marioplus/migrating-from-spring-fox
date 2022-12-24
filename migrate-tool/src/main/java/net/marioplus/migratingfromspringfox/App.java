@@ -1,7 +1,9 @@
 package net.marioplus.migratingfromspringfox;
 
-import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.expr.MemberValuePair;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import lombok.SneakyThrows;
 import net.marioplus.migratingfromspringfox.util.FileUtils;
@@ -21,9 +23,22 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 public class App {
+
+    private static final JavaParser javaParser;
+
+    static {
+        ParserConfiguration parserConfiguration = new ParserConfiguration();
+        parserConfiguration.setLexicalPreservationEnabled(true);
+        javaParser = new JavaParser(parserConfiguration);
+    }
+
     public static void main(String[] args) throws FileNotFoundException {
         List<String> paths = Collections.singletonList(String.format("%s/spring-fox-demo/src/main/java/", Paths.get(".").normalize().toAbsolutePath()));
-        List<VoidVisitorAdapter<AtomicBoolean>> visitorAdapters = Arrays.asList(new ImportReplaceVisitor(), new AnnotationReplaceVisitor());
+        List<VoidVisitorAdapter<AtomicBoolean>> visitorAdapters = Arrays.asList(
+                // new RemoveVisitor(),
+                new ImportReplaceVisitor(),
+                new AnnotationReplaceVisitor()
+        );
         List<File> files = FileUtils.loadFile(paths, FileUtils.FILE_FILTER_JAVA);
 
         for (File file : files) {
@@ -35,16 +50,22 @@ public class App {
     }
 
     private static void migrate(File file, List<VoidVisitorAdapter<AtomicBoolean>> visitorAdapters, Consumer<CompilationUnit> changedConsumer) throws FileNotFoundException {
-        CompilationUnit cu = StaticJavaParser.parse(file);
+        javaParser.parse(file).getResult().ifPresent(cu -> {
+            AtomicBoolean changed = new AtomicBoolean(false);
+            for (VoidVisitorAdapter<AtomicBoolean> visitorAdapter : visitorAdapters) {
+                visitorAdapter.visit(cu, changed);
+            }
 
-        AtomicBoolean changed = new AtomicBoolean(false);
-        for (VoidVisitorAdapter<AtomicBoolean> visitorAdapter : visitorAdapters) {
-            visitorAdapter.visit(cu, changed);
-        }
+            cu.walk(MemberValuePair.class, pair -> {
+                if (pair.getNameAsString().equals("dataTypeClass")) {
+                    pair.remove();
+                }
+            });
 
-        if (changed.get()) {
-            changedConsumer.accept(cu);
-        }
+            if (changed.get()) {
+                changedConsumer.accept(cu);
+            }
+        });
     }
 
     @SneakyThrows

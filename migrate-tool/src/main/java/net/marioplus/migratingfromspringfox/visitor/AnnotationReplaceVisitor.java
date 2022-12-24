@@ -20,7 +20,9 @@ public class AnnotationReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> 
 
     static {
         NORMAL_ANNOTATION_EXPR_FILTER_CONVERTORS
-                .add(new AnnotationExprFilterConvertor<>(MemberValuePair.class, "Api", "Tag"))
+                .add(new AnnotationExprFilterConvertor<>(MemberValuePair.class, "Api", "Tag", Collections.singletonList(
+                        new NodeSimpleNameFilterConvertor<>("tags", "name")
+                )))
                 .add(new AnnotationExprFilterConvertor<>(MemberValuePair.class, "ApiIgnore", Collections.singletonList(
                         (IAlwaysConvertor<MemberValuePair>) expr -> expr.getParentNode().ifPresent(p -> {
                             p.replace(new NormalAnnotationExpr(new Name("Hidden"), new NodeList<>()));
@@ -29,21 +31,7 @@ public class AnnotationReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> 
                 .add(new AnnotationExprFilterConvertor<>(MemberValuePair.class, "ApiModel", "Schema"))
                 .add(new AnnotationExprFilterConvertor<>(MemberValuePair.class, "ApiParam", "Parameter"))
                 .add(new AnnotationExprFilterConvertor<>(MemberValuePair.class, "ApiModelProperty", "Schema", Collections.singletonList(
-                        new IFilterConvertor<MemberValuePair>() {
-                            @Override
-                            public boolean filter(MemberValuePair pair) {
-                                if (!pair.getNameAsString().equals("hidden")) {
-                                    return false;
-                                }
-                                return ((BooleanLiteralExpr) pair.getValue()).getValue();
-                            }
-
-                            @Override
-                            public void convert(MemberValuePair pair) {
-                                FieldAccessExpr expr = new FieldAccessExpr(new NameExpr("io.swagger.v3.oas.annotations.media.Schema.AccessMode"), "READ_ONLY");
-                                pair.setValue(expr);
-                            }
-                        }
+                        new NodeSimpleNameFilterConvertor<>("value", "description")
                 )))
                 .add(new AnnotationExprFilterConvertor<>(MemberValuePair.class, "ApiOperation", "Operation", Arrays.asList(
                         new NodeSimpleNameFilterConvertor<>("value", "summary"),
@@ -51,14 +39,13 @@ public class AnnotationReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> 
                 )))
                 .add(new AnnotationExprFilterConvertor<>(MemberValuePair.class, "ApiOperation", Arrays.asList(
                         new NodeSimpleNameFilterConvertor<>("code", "responseCode"),
-                        new NodeSimpleNameFilterConvertor<>("code", pair -> {
-                            Expression expr = pair.getValue();
-                            IntegerLiteralExpr intExpr = (IntegerLiteralExpr) expr;
-                            StringLiteralExpr newExpr = new StringLiteralExpr(String.valueOf(intExpr.getValue()));
-                            pair.setValue(newExpr);
-                        }),
+                        new NodeSimpleNameFilterConvertor<>("code", new ExpressionConvertor<>(MemberValuePair::getValue, MemberValuePair::setValue, ExpressionConvertor.INT_2_STRING)),
                         new NodeSimpleNameFilterConvertor<>("message", "description")
-                )));
+                )))
+                .add(new AnnotationExprFilterConvertor<>(MemberValuePair.class, "ApiImplicitParam", "Parameter", Collections.singletonList(
+                        new NodeSimpleNameFilterConvertor<>("value", "description")
+                )))
+        ;
     }
 
     private static final AnnotationExprConvertors<SingleMemberAnnotationExpr> SINGLE_MEMBER_ANNOTATION_EXPR_FILTER_CONVERTORS = new AnnotationExprConvertors<>();
@@ -66,7 +53,9 @@ public class AnnotationReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> 
     static {
         SINGLE_MEMBER_ANNOTATION_EXPR_FILTER_CONVERTORS
                 .add(new AnnotationExprFilterConvertor<>(NormalAnnotationExpr.class, "ApiImplicitParams", "Parameters", Collections.singletonList(
-                        new NormalAnnotationExprFilterConvertor<>(MemberValuePair.class, "ApiImplicitParam", "Parameter")
+                        new NormalAnnotationExprFilterConvertor<>(MemberValuePair.class, "ApiImplicitParam", "Parameter", Collections.singletonList(
+                                new NodeSimpleNameFilterConvertor<>("value", "description")
+                        ))
                 )))
                 .add(new AnnotationExprFilterConvertor<>(StringLiteralExpr.class, "ApiIgnore", Collections.singletonList(
                         (IAlwaysConvertor<StringLiteralExpr>) expr -> expr.getParentNode().ifPresent(p -> p.replace(new NormalAnnotationExpr(new Name("Hidden"), new NodeList<>())))
