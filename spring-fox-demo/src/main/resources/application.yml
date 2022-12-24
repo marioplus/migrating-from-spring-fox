@@ -1,0 +1,8 @@
+spring:
+  mvc:
+    pathmatch:
+      matching-strategy: ant-path-matcher
+
+logging:
+  level:
+    net.marioplus.springfoxdemo: debug
