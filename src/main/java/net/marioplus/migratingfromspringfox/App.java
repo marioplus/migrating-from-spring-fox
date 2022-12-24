@@ -3,14 +3,18 @@ package net.marioplus.migratingfromspringfox;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
-import net.marioplus.migratingfromspringfox.util.CompilationUnitUtils;
+import lombok.SneakyThrows;
 import net.marioplus.migratingfromspringfox.util.FileUtils;
 import net.marioplus.migratingfromspringfox.visitor.AnnotationReplaceVisitor;
 import net.marioplus.migratingfromspringfox.visitor.ImportReplaceVisitor;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -44,7 +48,8 @@ public class App {
         }
     }
 
-    private static void refreshFile(File file, CompilationUnit cu) {
-        System.out.println(cu);
+    @SneakyThrows
+    private static void refreshFile(File file, CompilationUnit cu){
+        Files.write(file.toPath(), cu.toString().getBytes(StandardCharsets.UTF_8), StandardOpenOption.TRUNCATE_EXISTING);
     }
 }
