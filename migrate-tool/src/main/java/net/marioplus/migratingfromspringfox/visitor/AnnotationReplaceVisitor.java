@@ -16,7 +16,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class AnnotationReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> {
 
+    // @xxx(xxx=xxx)
     private static final AnnotationExprConvertors<NormalAnnotationExpr> NORMAL_ANNOTATION_EXPR_FILTER_CONVERTORS = new AnnotationExprConvertors<>();
+    // @xxx(@xxx(xxx=xxx))
+    private static final AnnotationExprConvertors<SingleMemberAnnotationExpr> SINGLE_MEMBER_ANNOTATION_EXPR_FILTER_CONVERTORS = new AnnotationExprConvertors<>();
+    // @xxx
+    private static final List<NodeNameFilterConvertor<NodeWithName<AnnotationExpr>, AnnotationExpr>> MARKER_ANNOTATION_EXPR_FILTER_CONVERTOR = new ArrayList<>();
 
     static {
         NORMAL_ANNOTATION_EXPR_FILTER_CONVERTORS
@@ -28,18 +33,21 @@ public class AnnotationReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> 
                             p.replace(new NormalAnnotationExpr(new Name("Hidden"), new NodeList<>()));
                         })
                 )))
-                .add(new AnnotationExprFilterConvertor<>(MemberValuePair.class, "ApiModel", "Schema"))
+                .add(new AnnotationExprFilterConvertor<>(MemberValuePair.class, "ApiModel", "Schema", Collections.singletonList(
+                        new NodeSimpleNameFilterConvertor<>("value", "name")
+                )))
                 .add(new AnnotationExprFilterConvertor<>(MemberValuePair.class, "ApiParam", "Parameter"))
-                .add(new AnnotationExprFilterConvertor<>(MemberValuePair.class, "ApiModelProperty", "Schema", Collections.singletonList(
-                        new NodeSimpleNameFilterConvertor<>("value", "description")
+                .add(new AnnotationExprFilterConvertor<>(MemberValuePair.class, "ApiModelProperty", "Schema", Arrays.asList(
+                        new NodeSimpleNameFilterConvertor<>("value", "description"),
+                        new NodeSimpleNameFilterConvertor<>("allowEmptyValue", "nullable")
                 )))
                 .add(new AnnotationExprFilterConvertor<>(MemberValuePair.class, "ApiOperation", "Operation", Arrays.asList(
                         new NodeSimpleNameFilterConvertor<>("value", "summary"),
                         new NodeSimpleNameFilterConvertor<>("notes", "description")
                 )))
-                .add(new AnnotationExprFilterConvertor<>(MemberValuePair.class, "ApiOperation", Arrays.asList(
+                .add(new AnnotationExprFilterConvertor<>(MemberValuePair.class, "ApiResponse", Arrays.asList(
                         new NodeSimpleNameFilterConvertor<>("code", "responseCode"),
-                        new NodeSimpleNameFilterConvertor<>("code", new ExpressionConvertor<>(MemberValuePair::getValue, MemberValuePair::setValue, ExpressionConvertor.INT_2_STRING)),
+                        new NodeSimpleNameFilterConvertor<>("responseCode", new ExpressionConvertor<>(MemberValuePair::getValue, MemberValuePair::setValue, ExpressionConvertor.INT_2_STRING)),
                         new NodeSimpleNameFilterConvertor<>("message", "description")
                 )))
                 .add(new AnnotationExprFilterConvertor<>(MemberValuePair.class, "ApiImplicitParam", "Parameter", Collections.singletonList(
@@ -47,8 +55,6 @@ public class AnnotationReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> 
                 )))
         ;
     }
-
-    private static final AnnotationExprConvertors<SingleMemberAnnotationExpr> SINGLE_MEMBER_ANNOTATION_EXPR_FILTER_CONVERTORS = new AnnotationExprConvertors<>();
 
     static {
         SINGLE_MEMBER_ANNOTATION_EXPR_FILTER_CONVERTORS
@@ -61,8 +67,6 @@ public class AnnotationReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> 
                         (IAlwaysConvertor<StringLiteralExpr>) expr -> expr.getParentNode().ifPresent(p -> p.replace(new NormalAnnotationExpr(new Name("Hidden"), new NodeList<>())))
                 )));
     }
-
-    private static final List<NodeNameFilterConvertor<NodeWithName<AnnotationExpr>, AnnotationExpr>> MARKER_ANNOTATION_EXPR_FILTER_CONVERTOR = new ArrayList<>();
 
     static {
         MARKER_ANNOTATION_EXPR_FILTER_CONVERTOR.add(
