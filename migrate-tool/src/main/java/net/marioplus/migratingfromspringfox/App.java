@@ -35,7 +35,6 @@ public class App {
     public static void main(String[] args) throws FileNotFoundException {
         List<String> paths = Collections.singletonList(String.format("%s/spring-fox-demo/src/main/java/", Paths.get(".").normalize().toAbsolutePath()));
         List<VoidVisitorAdapter<AtomicBoolean>> visitorAdapters = Arrays.asList(
-                // new RemoveVisitor(),
                 new ImportReplaceVisitor(),
                 new AnnotationReplaceVisitor()
         );
@@ -61,6 +60,12 @@ public class App {
                     pair.remove();
                 }
             });
+
+
+            if (file.getName().endsWith("Rest.java")) {
+                cu.addImport("io.swagger.v3.oas.annotations.tags.Tag");
+                cu.addImport("io.swagger.v3.oas.annotations.responses.ApiResponse");
+            }
 
             if (changed.get()) {
                 changedConsumer.accept(cu);
