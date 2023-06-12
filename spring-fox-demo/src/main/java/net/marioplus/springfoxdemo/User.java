@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class User {
 
-    @ApiModelProperty(name = "id", value = "编号", example = "1", required = true)
+    @ApiModelProperty(name = "id", value = "编号", example = "1", required = true, allowEmptyValue = true)
     private Long id;
 
     @ApiModelProperty(name = "name", value = "姓名", example = "小明", required = true)
