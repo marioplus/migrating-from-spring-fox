@@ -23,6 +23,7 @@
     <modules>
         <module>migrate-tool</module>
         <module>spring-fox-demo</module>
+        <module>open-api-demo</module>
     </modules>
 
     <dependencyManagement>
@@ -73,6 +74,11 @@
                 <groupId>io.springfox</groupId>
                 <artifactId>springfox-boot-starter</artifactId>
                 <version>3.0.0</version>
+            </dependency>
+            <dependency>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-models</artifactId>
+                <version>2.2.11</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
