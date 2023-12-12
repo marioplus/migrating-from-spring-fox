@@ -65,7 +65,11 @@ public class AnnotationReplaceVisitor extends VoidVisitorAdapter<AtomicBoolean> 
                 )))
                 .add(new AnnotationExprFilterConvertor<>(StringLiteralExpr.class, "ApiIgnore", Collections.singletonList(
                         (IAlwaysConvertor<StringLiteralExpr>) expr -> expr.getParentNode().ifPresent(p -> p.replace(new NormalAnnotationExpr(new Name("Hidden"), new NodeList<>())))
-                )));
+                )))
+                // @ApiModelProperty("xx") -> @Schema(description = "xx")
+                .add(new AnnotationExprFilterConvertor<>("ApiModelProperty", "Schema", "description", AnnotationExprFilterConvertor.SINGLE_STRING_MEMBER_CONVERTOR_FN))
+        ;
+
     }
 
     static {

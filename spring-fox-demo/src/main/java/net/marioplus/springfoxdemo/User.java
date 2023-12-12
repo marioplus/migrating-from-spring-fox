@@ -21,4 +21,13 @@ public class User {
     @ApiModelProperty(hidden = true, name = "age", value = "年龄", example = "12", required = true)
     private Integer age;
 
+    public User(Long id, String name, Integer age) {
+        this.id = id;
+        this.name = name;
+        this.age = age;
+    }
+
+    @ApiModelProperty("备注")
+    private String mark;
+
 }
